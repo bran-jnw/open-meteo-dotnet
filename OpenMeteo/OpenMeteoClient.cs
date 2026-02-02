@@ -11,7 +11,8 @@ namespace OpenMeteo
     /// </summary>
     public class OpenMeteoClient
     {
-        private readonly string _weatherApiUrl = "https://api.open-meteo.com/v1/forecast";
+        private readonly string _weatherForecastApiUrl = "https://api.open-meteo.com/v1/forecast";
+        private readonly string _weatherHistoricalApiUrl = "https://archive-api.open-meteo.com/v1/archive";
         private readonly string _geocodeApiUrl = "https://geocoding-api.open-meteo.com/v1/search";
         private readonly string _airQualityApiUrl = "https://air-quality-api.open-meteo.com/v1/air-quality";
         private readonly HttpController httpController;
@@ -19,9 +20,13 @@ namespace OpenMeteo
         /// <summary>
         /// Creates a new <seealso cref="OpenMeteoClient"/> object and sets the neccessary variables (httpController, CultureInfo)
         /// </summary>
-        public OpenMeteoClient()
+        public OpenMeteoClient(bool _useHistoricalApi = false)
         {
             httpController = new HttpController();
+            if(_useHistoricalApi)
+            {
+                _weatherForecastApiUrl = _weatherHistoricalApiUrl;
+            }
         }
 
         /// <summary>
@@ -286,7 +291,7 @@ namespace OpenMeteo
         {
             try
             {
-                HttpResponseMessage response = await httpController.Client.GetAsync(MergeUrlWithOptions(_weatherApiUrl, options));
+                HttpResponseMessage response = await httpController.Client.GetAsync(MergeUrlWithOptions(_weatherForecastApiUrl, options));
                 response.EnsureSuccessStatusCode();
 
                 WeatherForecast? weatherForecast = await JsonSerializer.DeserializeAsync<WeatherForecast>(await response.Content.ReadAsStreamAsync(), new JsonSerializerOptions() { PropertyNameCaseInsensitive = true });
